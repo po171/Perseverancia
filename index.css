@@ -139,7 +139,9 @@ body {
 }
 
 
-
+.notshown {
+    display:none
+}
 
 .link {
     text-decoration: none;
