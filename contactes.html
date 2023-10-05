@@ -67,7 +67,6 @@
             <!-- Wrapper container -->
             <div class="container pt-5 py-4">
 
-                <!-- Bootstrap 5 starter form -->
                 <form id="contactForm" action="action.php" method="post">
 
                     <!-- Name input -->
@@ -147,50 +146,85 @@
         </div>
 
     </div>
+    <div id="error_message" style="width:100%; height:100%; display:none; ">
+        <h4>
+            Error
+        </h4>
+        Sorry there was an error sending your form.
+    </div>
+    <div id="success_message" style="width:100%; height:100%; display:none; ">
+        <h2>Success! Your Message was Sent Successfully.</h2>
+    </div>
 
 </main>
 
-
+<script
+        src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous"></script>
 <script>
-    const constraints = {
-        name: {
-            presence: { allowEmpty: false }
-        },
-        subject: {
-            presence: {allowEmpty: false},
+    $(function()
+    {
+        function after_form_submitted(data)
+        {
+            if(data.result == 'success')
+            {
+                $('form#reused_form').hide();
+                $('#success_message').show();
+                $('#error_message').hide();
+            }
+            else
+            {
+                $('#error_message').append('<ul></ul>');
 
-        },
-        email: {
-            presence: { allowEmpty: false },
-            email: true
-        },
-        message: {
-            presence: { allowEmpty: false }
+                jQuery.each(data.errors,function(key,val)
+                {
+                    $('#error_message ul').append('<li>'+key+':'+val+'</li>');
+                });
+                $('#success_message').hide();
+                $('#error_message').show();
+
+                //reverse the response on the button
+                $('button[type="button"]', $form).each(function()
+                {
+                    $btn = $(this);
+                    label = $btn.prop('orig_label');
+                    if(label)
+                    {
+                        $btn.prop('type','submit' );
+                        $btn.text(label);
+                        $btn.prop('orig_label','');
+                    }
+                });
+
+            }//else
         }
-    };
 
-    const form = document.getElementById('contact-form');
+        $('#contactForm').submit(function(e)
+        {
+            e.preventDefault();
 
-    form.addEventListener('submit', function (event) {
-        const formValues = {
-            name: form.elements.name.value,
-            subject: form.elements.subject.value,
-            email: form.elements.email.value,
-            message: form.elements.message.value
-        };
+            $form = $(this);
+            //show some response on the button
+            $('button[type="submit"]', $form).each(function()
+            {
+                $btn = $(this);
+                $btn.prop('type','button' );
+                $btn.prop('orig_label',$btn.text());
+                $btn.text('Sending ...');
+            });
 
-        const errors = validate(formValues, constraints);
 
-        if (errors) {
-            event.preventDefault();
-            const errorMessage = Object
-                .values(errors)
-                .map(function (fieldValues) { return fieldValues.join(', ')})
-                .join("\n");
+            $.ajax({
+                type: "POST",
+                url: 'handler.php',
+                data: $form.serialize(),
+                success: after_form_submitted,
+                dataType: 'json'
+            });
 
-            alert(errorMessage);
-        }
-    }, false);
+        });
+    });
 </script>
 
 

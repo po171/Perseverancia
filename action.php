@@ -1,52 +1,26 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+/*
+Tested working with PHP5.4 and above (including PHP 7 )
 
-$errors = [];
-$errorMessage = '';
+ */
+require_once './vendor/autoload.php';
 
-if (!empty($_POST)) {
-    $name = $_POST['name'];
-    $subject = $_POST['subject'];
-    $email = $_POST['email'];
-    $message = $_POST['message'];
+use FormGuide\Handlx\FormHandler;
 
-    if (empty($name)) {
-        $errors[] = 'Name is empty';
-    }
 
-    if (empty($email)) {
-        $errors[] = 'Email is empty';
-    } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Email is invalid';
-    }
+$pp = new FormHandler();
 
-    if (empty($subject)) {
-        $errors[] = 'Subject is empty';
-    }
-
-    if (empty($message)) {
-        $errors[] = 'Message is empty';
-    }
-
-    if (empty($errors)) {
-        $toEmail = 'ascencioanayaalejandro@gmail.com';
-        $emailSubject = $subject;
-        $headers = ['From' => $email, 'Reply-To' => $email, 'Content-type' => 'text/html; charset=utf-8'];
-        $bodyParagraphs = ["Name: {$name}", "Email: {$email}", "Message:", $message];
-        $body = join(PHP_EOL, $bodyParagraphs);
-
-        if (mail($toEmail, $emailSubject, $body, $headers)) {
-
-            header('Location: thank-you.html');
-        } else {
-            $errorMessage = 'Oops, something went wrong. Please try again later';
-        }
-
-    } else {
-
-        $allErrors = join('<br/>', $errors);
-        $errorMessage = "<p style='color: red;'>{$allErrors}</p>";
-    }
-}
+$validator = $pp->getValidator();
+$validator->fields(['name','email'])->areRequired()->maxLength(50);
+$validator->field('email')->isEmail();
+$validator->field('comments')->maxLength(6000);
 
 
 
+
+$pp->sendEmailTo('ascencioanayaalejandro@gmail.com'); // ← Your email here
+
+echo $pp->process($_POST);
